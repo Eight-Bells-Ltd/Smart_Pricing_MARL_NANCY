@@ -5,6 +5,9 @@ from gymnasium.spaces import Discrete, Dict, Box
 from pettingzoo import ParallelEnv
 import os
 
+import json
+
+
 class ReverseAuctionEnv(ParallelEnv):
   
     metadata = {"render_modes": ["human"], "name": "reverse_auction_v1"}
@@ -62,7 +65,21 @@ class ReverseAuctionEnv(ParallelEnv):
             
         
     def close(self):
-        print(self.round, self.bids)
+
+        min_index = np.argmin(self.bids)
+        winner = self.possible_agents[min_index]
+   
+
+        data = {
+            "winner": winner,
+            "price": np.min(self.bids)
+        }
+
+        with open('auction_results.json', 'w') as json_file:
+            json.dump(data, json_file, indent=4)
+
+        print("Data successfully written to output.json") 
+
         pass
 
     def reset(self, seed=None, options=None):

@@ -1,7 +1,7 @@
 environment:
   num_bidders: 4
-  max_rounds: 10
-  avg_min: 45
+  max_rounds: 20
+  avg_min: 30
 
 
 training:
