@@ -6,8 +6,6 @@
 
 ![Python Version](https://img.shields.io/badge/python-3.8.11-blue.svg)
 
-![License](https://img.shields.io/badge/license-MIT-green.svg)
-
   
 
 This project implements a reverse auction environment using the PettingZoo library and trains agents using Stable Baselines 3. The environment simulates a reverse auction where multiple agents compete by submitting bids, with the goal of offering the lowest price while maintaining a profitable position.
@@ -54,8 +52,6 @@ This project implements a reverse auction environment using the PettingZoo libra
 
 git clone https://github.com/Eight-Bells-Ltd/Smart_Pricing_MARL_NANCY.git
 
-cd reverse-auction-environment
-
 ```
 
 2. Create and activate a virtual environment with Python 3.8.11:
@@ -64,7 +60,7 @@ cd reverse-auction-environment
 
 conda create -n reverse_auction python=3.8.11
 
-conda activate reverse_auction.git
+conda activate reverse_auction
 
 ```
 
