@@ -62,6 +62,8 @@ conda create -n reverse_auction python=3.8.11
 
 conda activate reverse_auction
 
+cd Smart_Pricing_MARL_NANCY
+
 ```
 
 3. Install the required packages:
