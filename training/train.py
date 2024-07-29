@@ -11,7 +11,7 @@ def train(env_fn, steps: int = 10_000, learning_rate=1e-3, batch_size=256, ent_c
     print(f"Starting training on {str(env.metadata['name'])}.")
 
     env = ss.pettingzoo_env_to_vec_env_v1(env)
-    env = ss.concat_vec_envs_v1(env, 8, num_cpus=8, base_class="stable_baselines3")
+    env = ss.concat_vec_envs_v1(env, 16, num_cpus=16, base_class="stable_baselines3")
 
 
     model = create_ppo_model(env, learning_rate, batch_size, ent_coef)
