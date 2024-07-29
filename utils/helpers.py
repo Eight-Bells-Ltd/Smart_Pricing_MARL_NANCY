@@ -1,6 +1,26 @@
 import os
 import cv2
 import matplotlib.pyplot as plt
+import numpy as np
+import json
+
+def get_results (bids, agent_list):
+
+    min_index = np.argmin(bids)
+    winner = agent_list[min_index]
+
+
+    data = {
+        "winner": winner,
+        "price": np.min(bids)
+    }
+
+    with open('auction_results.json', 'w') as json_file:
+        json.dump(data, json_file, indent=4)
+
+    print("Data successfully written to output.json") 
+
+    return
 
 def render_env(num_agents, round_number, bids, agent_list, output_folder):
 
@@ -50,14 +70,14 @@ def calculate_reward (current_rank, previous_rank, avg_min, bid, initial_bid, ro
     
     # Negative reward for bid outside range
     if not (avg_min < bid < initial_bid):
-        reward -= 10
+        reward = -20
     else:
         reward += 2
         if round == max_rounds:
             if current_rank == 1: 
-                reward += 10
+                reward = 40
             else: 
-                reward -= 10        
+                reward -= 20        
 
     return reward
 

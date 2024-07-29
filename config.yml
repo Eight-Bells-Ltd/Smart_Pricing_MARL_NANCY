@@ -28,7 +28,7 @@ evaluation:
   render_mode: human
 training:
   batch_size: 256
-  ent_coef: 0.2
+  ent_coef: 0.5
   learning_rate: 0.001
   seed: 42
-  steps: 600000
+  steps: 800_000

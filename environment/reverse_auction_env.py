@@ -3,11 +3,7 @@ import numpy as np
 from gymnasium.spaces import Discrete, Dict, Box
 from pettingzoo import ParallelEnv
 
-from utils.helpers import calculate_reward, update_bid, render_env
-
-import os
-
-import json
+from utils.helpers import calculate_reward, update_bid, render_env, get_results
 
 
 class ReverseAuctionEnv(ParallelEnv):
@@ -25,7 +21,6 @@ class ReverseAuctionEnv(ParallelEnv):
         self.initial_bids = initial_prices if initial_prices != {} else np.random.randint(85, 100, size=num_bidders).astype(np.float64)       
         self.bids = self.initial_bids.copy()
         self.prev_ranks = np.ones(num_bidders, dtype=int)
-        print (possible_agents)
 
     @functools.lru_cache(maxsize=None)
     def observation_space(self, agent):
@@ -43,34 +38,21 @@ class ReverseAuctionEnv(ParallelEnv):
     def render(self):
 
         if self.render_mode == "human":
-            num_agents = len(self.possible_agents)
-            round_number = self.round
-            bids = self.bids
-            agent_list = self.possible_agents
-            output_folder = "outputs/pngs"
 
-            render_env(num_agents, round_number, bids, agent_list, output_folder)
+            output_folder = "outputs/pngs"
+            render_env(len(self.possible_agents), self.round, self.bids, self.possible_agents, output_folder)
+        
+        return
             
         
     def close(self):
 
-        min_index = np.argmin(self.bids)
-        winner = self.possible_agents[min_index]
-   
-
-        data = {
-            "winner": winner,
-            "price": np.min(self.bids)
-        }
-
-        with open('auction_results.json', 'w') as json_file:
-            json.dump(data, json_file, indent=4)
-
-        print("Data successfully written to output.json") 
+        get_results(self.bids, self.possible_agents)
 
         return
 
     def reset(self, seed=None, options=None):
+
         self.agents = self.possible_agents[:]
         self.round = 1
         self.done = False
