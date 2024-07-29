@@ -54,11 +54,11 @@ git clone https://github.com/Eight-Bells-Ltd/Smart_Pricing_MARL_NANCY.git
 
 ```
 
-2. Create and activate a virtual environment with Python 3.8.11:
+2. Create and activate a virtual environment with Python 3.11.8:
 
 ```bash
 
-conda create -n reverse_auction python=3.8.11
+conda create -n reverse_auction python=3.11.8
 
 conda activate reverse_auction
 
