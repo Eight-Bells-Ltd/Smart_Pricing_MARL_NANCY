@@ -34,22 +34,21 @@ class ReverseAuctionEnv(ParallelEnv):
     def action_space(self, agent):
         return Discrete(9)  # 0->same bid, 1-4>higher bid, 5-8>lower bid
 
-    
     def render(self):
 
         if self.render_mode == "human":
-
             output_folder = "outputs/pngs"
-            render_env(len(self.possible_agents), self.round, self.bids, self.possible_agents, output_folder)
-        
-        return
-            
-        
+            render_env(
+                num_agents=len(self.possible_agents),
+                round_number=self.round,
+                bids=self.bids,
+                agent_list=self.possible_agents,
+                output_folder=output_folder
+            )
+
     def close(self):
 
         get_results(self.bids, self.possible_agents)
-
-        return
 
     def reset(self, seed=None, options=None):
 
@@ -59,7 +58,6 @@ class ReverseAuctionEnv(ParallelEnv):
         self.bids = self.initial_bids.copy()
         self.prev_ranks = np.ones(len(self.agents), dtype=int)
 
-
         observations = {agent: {'current_rank': 1, 'previous_rank': 1, 'current_round': 1} for agent in self.agents}
         self.state = observations
         infos = {agent: {} for agent in self.agents}
@@ -67,33 +65,31 @@ class ReverseAuctionEnv(ParallelEnv):
 
     def step(self, actions):
 
-        if not actions:
-            #self.agents = []
-            return {}, {}, {}, {}, {}
+        if not actions: return {}, {}, {}, {}, {}
 
-        if self.round == self.max_rounds:
-            self.done = True
-
-        rewards = {}
-        observations = {}
-
+        self.done = self.round == self.max_rounds
         
-        for agent in self.agents:
-            action = actions[agent]
+        # Update bids based on actions
+        for agent, action in actions.items():
             agent_id = self.agent_name_mapping[agent]
-
             self.bids[agent_id] = update_bid(action, self.bids[agent_id])
 
         sorted_indices = np.argsort(self.bids)
         ranks = np.empty_like(sorted_indices)
         ranks[sorted_indices] = np.arange(len(sorted_indices)) + 1
 
+        rewards = {}
+        observations = {}
+
         for agent in self.agents:
             agent_id = self.agent_name_mapping[agent]
             previous_rank = self.prev_ranks[agent_id]
             current_rank = ranks[agent_id]
 
-            rewards[agent] = calculate_reward(current_rank, previous_rank, self.avg_min, self.bids[agent_id], self.initial_bids[agent_id], self.round, self.max_rounds)
+            rewards[agent] = calculate_reward(
+                current_rank, previous_rank, self.avg_min, self.bids[agent_id], 
+                self.initial_bids[agent_id], self.round, self.max_rounds
+            )
             
             observations[agent] = {
                 'current_rank': current_rank,
@@ -110,10 +106,8 @@ class ReverseAuctionEnv(ParallelEnv):
         terminations = {agent: self.done for agent in self.agents}
         truncations = {agent: self.done for agent in self.agents}
 
-        if(self.done!=True): self.round += 1
+        if not self.done: self.round += 1
 
-        if self.done:
-            self.agents = [] 
-
+        if self.done: self.agents = []
 
         return observations, rewards, terminations, truncations, infos
