@@ -1,6 +1,5 @@
 import glob
 import os
-import numpy as np
 from stable_baselines3 import PPO
 from pettingzoo.utils import parallel_to_aec
 
@@ -12,8 +11,10 @@ def evaluate(env_fn, num_games: int = 100, render_mode: str | None = None, **env
 
     try:
 
-        pattern = f"{env.metadata['name']}*.zip"
+        pattern = f"{env.metadata['num_bidders']}_provider_model*.zip"
         policy_files = glob.glob(os.path.join('models', pattern))
+
+        print(policy_files)
 
         latest_policy = max(policy_files, key=os.path.getctime)
 

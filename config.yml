@@ -4,15 +4,17 @@ environment:
     - 100
     - 90
     - 99
-    - 89
+    - 95
+    - 105
 
   max_rounds: 10
-  num_bidders: 4
+  num_bidders: 5
   possible_agents:
     - string1
     - string2
     - string3
     - string4
+    - string5
 
 
 evaluation:

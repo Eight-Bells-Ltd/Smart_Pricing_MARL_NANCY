@@ -18,7 +18,7 @@ def train(env_fn, steps: int = 10_000, learning_rate=1e-3, batch_size=256, ent_c
 
     model.learn(total_timesteps=steps)
 
-    model_filename = f"{env.unwrapped.metadata.get('name')}_{time.strftime('%Y%m%d-%H%M%S')}"
+    model_filename = f"{env.unwrapped.metadata.get('num_bidders')}_provider_model_{env.unwrapped.metadata.get('name')}_{time.strftime('%Y%m%d-%H%M%S')}"
     model_path = os.path.join('models', model_filename)
 
     model.save(model_path)

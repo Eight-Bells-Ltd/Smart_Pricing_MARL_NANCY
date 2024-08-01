@@ -1,14 +1,18 @@
 import functools
 import numpy as np
-from gymnasium.spaces import Discrete, Dict, Box
+from gymnasium.spaces import Discrete, Dict
 from pettingzoo import ParallelEnv
 
-from utils.helpers import calculate_reward, update_bid, render_env, get_results
+from utils.helpers import calculate_reward, update_bid, get_results
+from render.render import render_env
 
 
 class ReverseAuctionEnv(ParallelEnv):
   
-    metadata = {"render_modes": ["human"], "name": "reverse_auction_v1"}
+    metadata = {
+        "name": "smart_pricing",
+        "num_bidders": 5  # Default value
+    }
 
     def __init__(self, render_mode="human", num_bidders=5, possible_agents={}, initial_prices={}, avg_min=30, max_rounds=20):
         self.possible_agents = possible_agents if possible_agents != {} else ["provider_" + str(r) for r in range(num_bidders)]
@@ -21,6 +25,8 @@ class ReverseAuctionEnv(ParallelEnv):
         self.initial_bids = initial_prices if initial_prices != {} else np.random.randint(85, 100, size=num_bidders).astype(np.float64)       
         self.bids = self.initial_bids.copy()
         self.prev_ranks = np.ones(num_bidders, dtype=int)
+        self.metadata["num_bidders"] = num_bidders
+
 
     @functools.lru_cache(maxsize=None)
     def observation_space(self, agent):
@@ -45,6 +51,8 @@ class ReverseAuctionEnv(ParallelEnv):
                 agent_list=self.possible_agents,
                 output_folder=output_folder
             )
+
+        else: pass #write something here
 
     def close(self):
 
@@ -107,7 +115,6 @@ class ReverseAuctionEnv(ParallelEnv):
         truncations = {agent: self.done for agent in self.agents}
 
         if not self.done: self.round += 1
-
-        if self.done: self.agents = []
+        else: self.agents = []
 
         return observations, rewards, terminations, truncations, infos
