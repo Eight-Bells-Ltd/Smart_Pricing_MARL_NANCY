@@ -1,0 +1,28 @@
+environment:
+  avg_min: 30
+  initial_prices:
+    - 100
+    - 90
+    - 99
+    - 95
+    - 105
+  max_rounds: 10
+  num_bidders: 5
+  possible_agents:
+    - string1
+    - string2
+    - string3
+    - string4
+    - string5
+
+evaluation:
+  num_games: 1
+  render_mode: humann
+training:
+  batch_size: 512
+  ent_coef: 0.9
+  learning_rate: 0.001
+  seed: 42
+  steps: 100
+model_path: models/test
+
