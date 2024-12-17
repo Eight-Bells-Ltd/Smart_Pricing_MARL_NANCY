@@ -31,7 +31,7 @@ def main():
         eval_config = config['evaluation']
         evaluate(env_fn, num_games=eval_config['num_games'],
                  model_path=config['model_path'], render_mode=eval_config['render_mode'], **env_kwargs)
-        create_video_from_pngs("outputs/pngs")
+        # create_video_from_pngs("outputs/pngs")
 
     ray.shutdown()
 

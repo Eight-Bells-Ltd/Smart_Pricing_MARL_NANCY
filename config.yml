@@ -1,5 +1,5 @@
 environment:
-  avg_min: 30
+  min_limit_bid: 30
   initial_prices:
     - 100
     - 90
@@ -16,8 +16,8 @@ environment:
     - string5
 
 evaluation:
-  num_games: 1
-  render_mode: humann
+  num_games: 200
+  render_mode: test
 training:
   batch_size: 512
   ent_coef: 0.9

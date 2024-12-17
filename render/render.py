@@ -1,7 +1,8 @@
-import os
 import cv2
 import matplotlib.pyplot as plt
 import csv
+import os
+import uuid
 
 auction_data = {}
 
@@ -62,7 +63,6 @@ def render_final_plot(agent_list, data_file, output_folder):
     plt.savefig(os.path.join(output_folder, "full_auction_bids.png"))
     plt.close()
 
-
 def create_video_from_pngs(images_folder):
 
     output_video = "outputs/output_video.mp4"
@@ -89,3 +89,74 @@ def create_video_from_pngs(images_folder):
     video.release()
 
     print(f"Video created successfully: {output_video}")
+
+def plot_all_rounds(my_bid_history, output_folder, agent_name_mapping, min_limit_bid, max_limit_bid):
+    # Ensure the output folder exists
+    if not os.path.exists(output_folder):
+        os.makedirs(output_folder)
+
+    # Initialize the plot
+    plt.figure(figsize=(12, 8))
+
+    # Plot data for each agent
+    for agent, bid_history in my_bid_history.items():
+        rounds = range(1, len(bid_history) + 1)  # Rounds are 1-based indexing
+        agent_index = agent_name_mapping[agent]  # Map agent to its index
+
+        # Plot the bid history
+        line, = plt.plot(rounds, bid_history, marker='o', label=f"{agent}")
+
+        # Get the color of the current line
+        color = line.get_color()
+
+        # Plot min and max limit lines
+        plt.axhline(y=min_limit_bid[agent_index], color=color, linestyle='--', linewidth=1, alpha=0.4, label='_nolegend_')
+        plt.axhline(y=max_limit_bid[agent_index], color=color, linestyle='--', linewidth=1, alpha=0.4, label='_nolegend_')
+
+    # Plot settings
+    plt.xlabel("Round Number")
+    plt.ylabel("Bid Value")
+    plt.title("Bids of Each Agent Throughout All Rounds")
+    plt.legend()
+    plt.grid(True)
+
+    # Save the plot
+    output_file = os.path.join(output_folder, "all_rounds_bids.png")
+    plt.savefig(output_file)
+    plt.close()
+
+    print(f"Plot saved to {output_file}")
+
+def save_data(my_bid_history, output_folder, agent_name_mapping, min_limit_bid, max_limit_bid, auction_id=None):
+    # Generate a unique auction ID if not provided
+    if auction_id is None:
+        auction_id = str(uuid.uuid4())
+
+    # Ensure the output folder exists
+    os.makedirs(output_folder, exist_ok=True)
+
+    # Define file name with auction ID to ensure uniqueness
+    file_path = os.path.join(output_folder, f"auction_{auction_id}.csv")
+
+    # Define headers for the CSV file
+    headers = ["Auction_ID", "Agent", "Round", "My_Bid", "My_Max", "My_Min"]
+
+    # Write the data to a new file
+    with open(file_path, mode='w', newline='') as file:
+        writer = csv.writer(file)
+        writer.writerow(headers)  # Write headers
+
+        # Iterate through each agent and write their data
+        for agent, agent_id in agent_name_mapping.items():
+            for round_num in range(len(my_bid_history[agent])):
+                writer.writerow([
+                    auction_id,  # Unique Auction ID
+                    agent,  # Agent name
+                    round_num + 1,  # Round number
+                    my_bid_history[agent][round_num],  # My Bid history
+                    max_limit_bid[agent_id],  # My Max bid
+                    min_limit_bid[agent_id]  # My Min bid
+                ])
+
+    # print(f"Data successfully saved to {file_path}.")
+

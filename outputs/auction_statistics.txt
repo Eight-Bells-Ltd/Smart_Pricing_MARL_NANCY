@@ -1,0 +1,6 @@
+Total Auctions: 200.00
+Average Winning Bid Difference: 6.57
+Percentage of Lowest Starting Price Wins: 53.50
+Percentage of Lowest Min Limit Price Wins: 59.00
+Percentage of Agents Bidding Lowest Possible Bid: 9.22
+Percentage of Agents Bidding Highest Possible Bid: 62.89

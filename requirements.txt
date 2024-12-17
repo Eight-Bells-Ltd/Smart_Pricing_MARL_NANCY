@@ -5,5 +5,5 @@ pettingzoo==1.24.0
 opencv-python~=4.10.0.84
 pyyaml~=6.0.2
 tqdm~=4.67.1
-ray==2.40.0
+ray==2.38.0
 torch==2.5.1+cu124
