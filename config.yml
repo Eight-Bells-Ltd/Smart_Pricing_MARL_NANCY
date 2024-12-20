@@ -15,14 +15,16 @@ environment:
     - string4
     - string5
 
-evaluation:
-  num_games: 200
+testing:
+  num_games: 500
   render_mode: test
+evaluation:
+  render_mode: human
 training:
   batch_size: 512
   ent_coef: 0.9
   learning_rate: 0.001
   seed: 42
-  steps: 100
+  steps: 200
 model_path: models/test
 

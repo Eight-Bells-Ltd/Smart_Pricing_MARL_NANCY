@@ -12,7 +12,7 @@ from ray.rllib.models import ModelCatalog
 from ray.rllib.utils.framework import try_import_torch
 torch, nn = try_import_torch()
 torch.backends.cudnn.benchmark = True
-use_gpu = torch.cuda.is_available()
+use_gpu = False#torch.cuda.is_available()
 print("Torch is using CUDA: ", torch.cuda.is_available())
 print("Torch device count: ", torch.cuda.device_count())
 
@@ -37,6 +37,16 @@ def train(env_fn, steps: int = 10_000, learning_rate=1e-3, batch_size=256, model
         .environment("reverse_auction")
         .framework("torch")
         .rollouts(num_rollout_workers=6, num_envs_per_worker=1, rollout_fragment_length='auto')
+        # .evaluation(
+        #         evaluation_interval= 50,
+        #         evaluation_duration= 1,#irrelevant
+        #         evaluation_duration_unit= "episodes",#irrelevant
+        #         evaluation_config= {
+        #             "env_config": {"render_mode": 'evaluate'},
+        #             "explore": True,
+        #             "entropy_coeff": 0.01
+        #         }
+        # )
         .training(
             train_batch_size=batch_size,
             minibatch_size=batch_size,
@@ -44,7 +54,7 @@ def train(env_fn, steps: int = 10_000, learning_rate=1e-3, batch_size=256, model
             vf_clip_param=1000,
             model={
                 "custom_model": "action_masked_model",
-                "fcnet_hiddens": [32, 32],
+                "fcnet_hiddens": [16, 32, 64],
                 "fcnet_activation": "relu",
             },
             entropy_coeff_schedule=[
@@ -59,7 +69,8 @@ def train(env_fn, steps: int = 10_000, learning_rate=1e-3, batch_size=256, model
             },
             policy_mapping_fn=policy_mapping_fn,
         )
-        .resources(num_gpus=1 if use_gpu else 0, num_gpus_per_worker=1/6)
+        .resources(num_gpus=0, num_gpus_per_worker=0)
+
     )
 
     trainer = PPO(config=config)
@@ -88,6 +99,9 @@ def train(env_fn, steps: int = 10_000, learning_rate=1e-3, batch_size=256, model
 
             # Save the plot every 50 steps
             if (i + 1) % 50 == 0:
+                # eval_results = trainer.evaluate()
+                # print(f"Evaluation results at step {i + 1}:", eval_results)
+
                 plt.figure(figsize=(10, 5))
                 plt.plot(reward_means, label="policy_reward_mean", color="blue")
                 plt.fill_between(

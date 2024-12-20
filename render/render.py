@@ -62,6 +62,7 @@ def render_final_plot(agent_list, data_file, output_folder):
     # Save the final comprehensive plot
     plt.savefig(os.path.join(output_folder, "full_auction_bids.png"))
     plt.close()
+    print(f"Plot saved to {output_folder}/full_auction_bids.png")
 
 def create_video_from_pngs(images_folder):
 

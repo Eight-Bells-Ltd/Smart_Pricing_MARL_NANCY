@@ -19,21 +19,26 @@ def update_bid(action, bid):
 
     return bid * multipliers[action]
 
-def calculate_reward(current_rank, num_agents, avg_min_bid, bid, initial_bid, round, max_rounds, action):
+def calculate_reward(current_rank, num_agents, min_limit_bid, curr_bid, max_limit_bid, round, max_rounds, action):
     reward = 0
     normalized_rank = (num_agents - current_rank) / (num_agents - 1)
-    reward = 40 * normalized_rank # 100 when at rank 1, 0 at the worst rank
+    reward = 20 * normalized_rank # 100 when at rank 1, 0 at the worst rank
 
+    proximity_to_max_bid = (curr_bid - min_limit_bid) / (max_limit_bid - min_limit_bid) # Scales bid between 0 and 1
     # End-of-auction rewards/penalties
-    if round == max_rounds and current_rank == 1:
-        if current_rank == 1:
-            reward += 60
+    if round+1 == max_rounds and current_rank == 1:
+        reward += 200
+        reward -= 20 * (1 - proximity_to_max_bid)
 
-    proximity_to_initial_bid = (bid - avg_min_bid) / (initial_bid - avg_min_bid) # Scales bid between 0 and 1
-    reward *= proximity_to_initial_bid # bid penalty for bids closer to avg_min_bid
+    reward -= 10 * (1 - proximity_to_max_bid) # bid penalty for bids closer to min_limit_bid
 
-    bid_update_penalty = 1 - abs(1 - multipliers[action])  # Calculate the deviation from 1
-    reward *= bid_update_penalty ** 2
+    bid_change = multipliers[action] - 1  # Calculate the change direction
+    if bid_change < 0:  # Aggressive undercutting
+        bid_update_penalty = 1 - abs(1 - multipliers[action]) **2  # Amplify penalty for decreases
+    else:  # Aggressive increases
+        bid_update_penalty = 1 - abs(1 - multipliers[action]) **2 # Less severe penalty for increases
+
+    reward *= bid_update_penalty**2 if reward >= 0 else (2 - bid_update_penalty**2)
 
     return reward
 

@@ -29,10 +29,12 @@ class ReverseAuctionEnv(ParallelEnv):
         self.curr_round = 1
         self.min_limit_bid = np.random.randint(20, 40, size=self.num_bidders)#TODO take min_limit_bid into account
         # self.min_limit_bid[0]=15
+        # self.min_limit_bid = np.ones(shape=self.num_bidders) * 30
         self.done = False
         self.max_limit_bid = np.random.randint(80, 100, size=self.num_bidders)#TODO add max_limit_bid and tak it into account
         # self.max_limit_bid[1]=40
-        self.curr_bids = self.max_limit_bid.copy()
+        # self.max_limit_bid = np.ones(shape=self.num_bidders) * 90
+        self.curr_bids = self.min_limit_bid + (self.max_limit_bid - self.min_limit_bid) / 2
         self.prev_ranks = np.ones(len(self.agents), dtype=int)
         self.metadata["num_bidders"] = self.num_bidders
 
@@ -54,8 +56,8 @@ class ReverseAuctionEnv(ParallelEnv):
                     'previous_rank': 1,
                     'remaining_rounds': self.max_rounds,
                     'my_bid_history': self.my_bid_history[agent],
-                    'my_max': np.array([self.max_limit_bid[self.agent_name_mapping[agent]]], dtype=np.float32),
-                    'my_min': np.array([self.min_limit_bid[self.agent_name_mapping[agent]]], dtype=np.float32)
+                    # 'my_max': np.array([self.max_limit_bid[self.agent_name_mapping[agent]]], dtype=np.float32),
+                    # 'my_min': np.array([self.min_limit_bid[self.agent_name_mapping[agent]]], dtype=np.float32)
                 },
                 'action_mask': generate_action_mask(
                     self.curr_bids[self.agent_name_mapping[agent]],
@@ -76,8 +78,8 @@ class ReverseAuctionEnv(ParallelEnv):
                 'previous_rank': Discrete(100 + 1),
                 'remaining_rounds': Discrete(self.max_rounds + 1),
                 'my_bid_history': Box(0, np.inf, shape=(self.max_rounds,)),
-                'my_max': Box(0, np.inf),
-                'my_min': Box(0, np.inf)
+                # 'my_max': Box(0, np.inf),
+                # 'my_min': Box(0, np.inf)
             }),
             'action_mask': MultiBinary(len(np.arange(1.99, 0.01, -0.01).round(2).tolist()))
         })
@@ -88,16 +90,15 @@ class ReverseAuctionEnv(ParallelEnv):
 
     def render(self):
         if self.render_mode == "human":
-            # output_folder = "outputs/pngs"
-            # render_env(
-            #     num_agents=len(self.possible_agents),
-            #     round_number=self.round,
-            #     bids=self.bids,
-            #     agent_list=self.possible_agents,
-            #     output_folder=output_folder
-            # )
-            # render_final_plot(self.possible_agents, "outputs/pngs/out.csv", output_folder)
-            # print(self.avg_min)
+            output_folder = "outputs/pngs"
+            render_env(
+                num_agents=len(self.possible_agents),
+                round_number=self.curr_round,
+                bids=self.curr_bids,
+                agent_list=self.possible_agents,
+                output_folder=output_folder
+            )
+            render_final_plot(self.possible_agents, "outputs/pngs/out.csv", output_folder)
             if self.done:
                 plot_all_rounds( self.my_bid_history,"outputs",self.agent_name_mapping,self.min_limit_bid,self.max_limit_bid)
         elif self.render_mode == "evaluate" and self.done:
@@ -161,8 +162,8 @@ class ReverseAuctionEnv(ParallelEnv):
                     'previous_rank': previous_rank,
                     'remaining_rounds': self.max_rounds - self.curr_round,
                     'my_bid_history': self.my_bid_history[agent],
-                    'my_max': np.array([self.max_limit_bid[agent_id]], dtype=np.float32),
-                    'my_min': np.array([self.min_limit_bid[agent_id]], dtype=np.float32)
+                    # 'my_max': np.array([self.max_limit_bid[agent_id]], dtype=np.float32),
+                    # 'my_min': np.array([self.min_limit_bid[agent_id]], dtype=np.float32)
                 },
                 'action_mask': generate_action_mask(
                     self.curr_bids[agent_id],
