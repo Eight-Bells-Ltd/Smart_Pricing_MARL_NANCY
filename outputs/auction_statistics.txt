@@ -1,7 +1,7 @@
 Total Auctions: 500.00
-Average Winning Bid Difference: 0.95
-Average Rank 1 vs Rank 2 Difference: 7.55
-Percentage of Lowest Starting Price Wins: 49.60
-Percentage of Lowest Min Limit Price Wins: 92.60
-Percentage of Agents Bidding Lowest Possible Bid: 0.02
-Percentage of Agents Bidding Highest Possible Bid: 0.02
+Average Winning Bid Difference: 11.02
+Average Rank 1 vs Rank 2 Difference: 3.61
+Percentage of Lowest Starting Price Wins: 32.20
+Percentage of Lowest Min Limit Price Wins: 75.20
+Percentage of Agents Bidding Lowest Possible Bid: 0.00
+Percentage of Agents Bidding Highest Possible Bid: 0.00

@@ -28,13 +28,11 @@ class ReverseAuctionEnv(ParallelEnv):
         self.agent_name_mapping = dict(zip(self.possible_agents, list(range(len(self.possible_agents)))))
         self.curr_round = 1
         self.min_limit_bid = np.random.randint(20, 40, size=self.num_bidders)#TODO take min_limit_bid into account
-        # self.min_limit_bid[0]=15
-        # self.min_limit_bid = np.ones(shape=self.num_bidders) * 30
+        # self.min_limit_bid[1] = 50
         self.done = False
         self.max_limit_bid = np.random.randint(80, 100, size=self.num_bidders)#TODO add max_limit_bid and tak it into account
-        # self.max_limit_bid[1]=40
-        # self.max_limit_bid = np.ones(shape=self.num_bidders) * 90
-        self.curr_bids = self.min_limit_bid + (self.max_limit_bid - self.min_limit_bid) / 2
+        self.curr_bids = np.random.uniform(self.min_limit_bid, self.max_limit_bid)
+        # self.curr_bids[1]=50
         self.prev_ranks = np.ones(len(self.agents), dtype=int)
         self.metadata["num_bidders"] = self.num_bidders
 

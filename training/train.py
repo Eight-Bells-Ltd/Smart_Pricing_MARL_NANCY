@@ -54,7 +54,7 @@ def train(env_fn, steps: int = 10_000, learning_rate=1e-3, batch_size=256, model
             vf_clip_param=1000,
             model={
                 "custom_model": "action_masked_model",
-                "fcnet_hiddens": [16, 32, 64],
+                "fcnet_hiddens": [32, 32],
                 "fcnet_activation": "relu",
             },
             entropy_coeff_schedule=[

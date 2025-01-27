@@ -10,7 +10,7 @@ import ray
 
 def main():
     parser = argparse.ArgumentParser(description="Reverse Auction Simulation")
-    parser.add_argument('--mode', choices=['train', 'evaluate', 'test'], default='train')
+    parser.add_argument('--mode', choices=['train', 'evaluate', 'test'], default='test')
     parser.add_argument('--config', default='config.yml', help='Path to config file')
     args = parser.parse_args()
 

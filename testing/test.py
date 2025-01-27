@@ -175,6 +175,7 @@ def analyze_auction_data(input_folder, output_folder, max_bidders=9, min_bidders
             f.write(f"{key}: {value:.2f}\n")
 
     print(f"Auction analysis completed. Results saved in {output_folder}.")
+
 def test(env_fn, num_games: int = 100, render_mode: str | None = None, model_path='models/test', **env_kwargs):
     files = glob.glob('outputs/csvs/*csv')
     for f in files:
