@@ -6,6 +6,7 @@ from ray.tune.registry import register_env
 from agents.ppo_agent import ActionMaskedModel
 from ray.rllib.models import ModelCatalog
 
+
 def evaluate(env_fn, render_mode: str | None = None, model_path='models/test', **env_kwargs):
     # Load the environment
     def env_creator(_):

@@ -12,33 +12,63 @@ class ReverseAuctionEnv(ParallelEnv):
         "name": "smart_pricing"
     }
 
-    def __init__(self, render_mode="no", num_bidders=5, possible_agents=None, initial_prices=None, min_limit_bid=30,
-                 max_rounds=20):#TODO take initial_prices into account
+    def __init__(self, render_mode="no", num_bidders=None, possible_agents=None,
+                 initial_prices=None, min_limit_bid=None, max_limit_bid=None,
+                 max_rounds=None, use_init_values=False):
+        """
+            - use_init_values (bool): If True, always reset with init values.
+                                      If False, reset generates new random values each time.
+        """
 
-        # self.num_bidders = num_bidders
-        #TODO take num_bidders into account for evaluation
-        self.max_rounds = max_rounds
+        # If using init values, ensure none of them are missing
+        if use_init_values and (num_bidders is None or min_limit_bid is None or
+                                max_limit_bid is None or initial_prices is None or
+                                possible_agents is None or max_rounds is None):
+            raise ValueError("If 'use_init_values' is True, all initial values (num_bidders, min_limit_bid, "
+                             "max_limit_bid, initial_prices, possible_agents, max_rounds) must be provided.")
+
+
         self.render_mode = render_mode
+        self.use_init_values = use_init_values  # Store this flag
+
+        # Store user-defined initial values
+        self.max_rounds = max_rounds if max_rounds is not None else None
+        self._init_num_bidders = num_bidders
+        self._init_min_limit_bid = np.array(min_limit_bid) if min_limit_bid is not None else None
+        self._init_max_limit_bid = np.array(max_limit_bid) if max_limit_bid is not None else None
+        self._init_initial_prices = np.array(initial_prices) if initial_prices is not None else None
+        self._init_possible_agents = possible_agents if possible_agents is not None else None
+
+        # Perform initial reset with the selected mode
         self.reset()
 
     def reset(self, seed=None, options=None):
-        self.num_bidders = np.random.randint(2, 10)
-        self.possible_agents = ["provider_" + str(r) for r in range(self.num_bidders)] #FIXME how to fix possible agents without reitialising env?
+        if self.use_init_values:
+            # Use stored initial values
+            self.num_bidders = self._init_num_bidders
+            self.min_limit_bid = np.array(self._init_min_limit_bid)
+            self.max_limit_bid = np.array(self._init_max_limit_bid)
+            self.curr_bids = np.array(self._init_initial_prices)
+            self.possible_agents = self._init_possible_agents[:]
+        else:
+            # Generate new random values
+            self.num_bidders = np.random.randint(2, 10)
+            self.min_limit_bid = np.random.randint(20, 40, size=self.num_bidders)
+            self.max_limit_bid = np.random.randint(80, 100, size=self.num_bidders)
+            self.curr_bids = np.random.uniform(self.min_limit_bid, self.max_limit_bid)
+            self.possible_agents = ["provider_" + str(r) for r in range(self.num_bidders)]
+
         self.agents = self.possible_agents[:]
         self.agent_name_mapping = dict(zip(self.possible_agents, list(range(len(self.possible_agents)))))
         self.curr_round = 1
-        self.min_limit_bid = np.random.randint(20, 40, size=self.num_bidders)#TODO take min_limit_bid into account
-        # self.min_limit_bid[1] = 50
         self.done = False
-        self.max_limit_bid = np.random.randint(80, 100, size=self.num_bidders)#TODO add max_limit_bid and tak it into account
-        self.curr_bids = np.random.uniform(self.min_limit_bid, self.max_limit_bid)
-        # self.curr_bids[1]=50
+        self.metadata = {"num_bidders": self.num_bidders}
         self.prev_ranks = np.ones(len(self.agents), dtype=int)
-        self.metadata["num_bidders"] = self.num_bidders
 
-        # Reset histories
-        self.my_bid_history = self.my_bid_history = {agent: np.array([self.curr_bids[self.agent_name_mapping[agent]], *np.zeros(self.max_rounds - 1)])
-                                                     for agent in self.possible_agents}
+        # Reset bid histories
+        self.my_bid_history = {
+            agent: np.array([self.curr_bids[self.agent_name_mapping[agent]], *np.zeros(self.max_rounds - 1)])
+            for agent in self.possible_agents}
         self.lowest_bid_history = np.ones(self.max_rounds) * np.min(self.curr_bids)
 
         # Calculate initial ranks
@@ -54,8 +84,6 @@ class ReverseAuctionEnv(ParallelEnv):
                     'previous_rank': 1,
                     'remaining_rounds': self.max_rounds,
                     'my_bid_history': self.my_bid_history[agent],
-                    # 'my_max': np.array([self.max_limit_bid[self.agent_name_mapping[agent]]], dtype=np.float32),
-                    # 'my_min': np.array([self.min_limit_bid[self.agent_name_mapping[agent]]], dtype=np.float32)
                 },
                 'action_mask': generate_action_mask(
                     self.curr_bids[self.agent_name_mapping[agent]],
@@ -105,6 +133,21 @@ class ReverseAuctionEnv(ParallelEnv):
             get_results(self.curr_bids, self.possible_agents)
         elif self.render_mode == "test" and self.done:
             save_data(self.my_bid_history, "outputs/csvs", self.agent_name_mapping, self.min_limit_bid, self.max_limit_bid, auction_id=None)
+        elif self.render_mode == "deploy" and self.done:
+            # output_folder = "outputs/pngs"
+            # render_env(
+            #     num_agents=len(self.possible_agents),
+            #     round_number=self.curr_round,
+            #     bids=self.curr_bids,
+            #     agent_list=self.possible_agents,
+            #     output_folder=output_folder
+            # )
+            # render_final_plot(self.possible_agents, "outputs/pngs/out.csv", output_folder)
+            # if self.done:
+            #     plot_all_rounds(self.my_bid_history, "outputs", self.agent_name_mapping, self.min_limit_bid,
+            #                     self.max_limit_bid)
+
+            get_results(self.curr_bids, self.possible_agents)
 
     def close(self):
         #for some reason close is called twice. and always on a !self.done env state
