@@ -1,4 +1,3 @@
-import ray
 from ray.rllib.algorithms.ppo import PPO
 from ray.rllib.env import ParallelPettingZooEnv
 import os
@@ -199,9 +198,9 @@ def test(env_fn, num_games: int = 100, render_mode: str | None = None, model_pat
             "custom_model": "action_masked_model",
         },
         "num_workers": 0,
-        "evaluation_num_workers": 0,
+        "evaluation_num_env_runners": 0,
         # "num_envs_per_worker":1/4,
-        "num_gpus": 1,
+        "num_gpus": 0,
         "create_env_on_driver": False,
         "explore": True,  # Use non-deterministic policy for evaluation
         "evaluation_interval": 1,

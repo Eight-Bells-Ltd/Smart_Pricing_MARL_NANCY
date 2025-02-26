@@ -1,11 +1,9 @@
-import functools
+from functools import lru_cache
 import numpy as np
 from gymnasium.spaces import Discrete, Dict, MultiBinary, Box
 from pettingzoo import ParallelEnv
 
 from utils.helpers import calculate_reward, update_bid, get_results, generate_action_mask
-from render.render import render_env, render_final_plot, plot_all_rounds, save_data
-
 
 class ReverseAuctionEnv(ParallelEnv):
     metadata = {
@@ -96,7 +94,7 @@ class ReverseAuctionEnv(ParallelEnv):
         infos = {agent: {} for agent in self.agents}
         return observations, infos
 
-    @functools.lru_cache(maxsize=None)
+    @lru_cache(maxsize=None)
     def observation_space(self, agent):
         return Dict({
             'observations': Dict({
@@ -110,12 +108,14 @@ class ReverseAuctionEnv(ParallelEnv):
             'action_mask': MultiBinary(len(np.arange(1.99, 0.01, -0.01).round(2).tolist()))
         })
 
-    @functools.lru_cache(maxsize=None)
+    @lru_cache(maxsize=None)
     def action_space(self, agent):
         return Discrete(len(np.arange(1.99, 0.01, -0.01).round(2).tolist()))
 
     def render(self):
         if self.render_mode == "human":
+            from render.render import render_env, render_final_plot, plot_all_rounds
+
             output_folder = "outputs/pngs"
             render_env(
                 num_agents=len(self.possible_agents),
@@ -132,6 +132,8 @@ class ReverseAuctionEnv(ParallelEnv):
             print(self.possible_agents)
             get_results(self.curr_bids, self.possible_agents)
         elif self.render_mode == "test" and self.done:
+            from render.render import save_data
+
             save_data(self.my_bid_history, "outputs/csvs", self.agent_name_mapping, self.min_limit_bid, self.max_limit_bid, auction_id=None)
         elif self.render_mode == "deploy" and self.done:
             # output_folder = "outputs/pngs"

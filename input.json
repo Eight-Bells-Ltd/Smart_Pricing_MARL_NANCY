@@ -1,0 +1,22 @@
+{
+  "services": [
+    {
+      "provider_id": "OTE",
+      "minprice": 50.0,
+      "maxprice": 100.0,
+      "service_id": "service_1"
+    },
+    {
+      "provider_id": "Vodafone",
+      "minprice": 60.0,
+      "maxprice": 90.0,
+      "service_id": "service_1"
+    },
+    {
+      "provider_id": "8Bells",
+      "minprice": 55.0,
+      "maxprice": 95.0,
+      "service_id": "service_1"
+    }
+  ]
+}

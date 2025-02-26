@@ -1,10 +1,10 @@
-import ray
-from ray.rllib.algorithms.ppo import PPO
 from ray.rllib.env import ParallelPettingZooEnv
 import os
 from ray.tune.registry import register_env
 from agents.ppo_agent import ActionMaskedModel
 from ray.rllib.models import ModelCatalog
+from ray.rllib.algorithms.ppo import PPOConfig
+import time
 
 
 def evaluate(env_fn, render_mode: str | None = None, model_path='models/test', **env_kwargs):
@@ -20,32 +20,23 @@ def evaluate(env_fn, render_mode: str | None = None, model_path='models/test', *
     model_path = os.path.abspath(model_path)
 
     # Define a config for evaluation, enabling `create_env_on_driver`
-    config = {
-        "env": "reverse_auction",
-        "model": {
-            "custom_model": "action_masked_model",
-        },
-        "num_workers": 0,
-        "evaluation_num_workers": 0,
-        # "num_envs_per_worker":1/4,
-        "num_gpus": 1,
-        "create_env_on_driver": False,
-        "explore": True,  # Use non-deterministic policy for evaluation
-        "evaluation_interval": 1,
-        "evaluation_duration": 1,
-        "evaluation_duration_unit": "episodes",
-        "evaluation_config": {
-            "env_config": {"render_mode": render_mode},
-            "explore": True,
-            "entropy_coeff": 0.01
-        }
-    }
-
-    # Load PPO from checkpoint with the above config
-    algo = PPO(config=config, env="reverse_auction")
+    algo = (
+        PPOConfig()
+        .environment("reverse_auction")
+        .framework("torch")  # Or "tf" depending on your setup
+        .rollouts(num_env_runners=0)
+        .training(model={"custom_model": "action_masked_model"}, entropy_coeff=0.01)
+        .evaluation(
+            evaluation_interval=1,
+            evaluation_duration=1,
+            evaluation_duration_unit="episodes",
+            evaluation_config={"env_config": {"render_mode": render_mode}, "explore": True},
+        )
+        .resources(num_gpus=0)
+        .build()
+    )
     algo.restore(model_path)
 
-    import time
     start_time = time.perf_counter()
 
     # Run evaluation directly

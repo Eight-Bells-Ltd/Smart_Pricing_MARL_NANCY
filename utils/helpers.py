@@ -1,6 +1,5 @@
 import numpy as np
 import json
-import math
 
 # multipliers = np.array([1.1, 1.2, 1.3, 1.0, 0.9, 0.8, 0.7])
 multipliers = np.arange(1.99, 0.01, -0.01).round(2)

@@ -1,4 +1,3 @@
-import os
 from tqdm import tqdm
 import matplotlib.pyplot as plt
 
@@ -36,7 +35,7 @@ def train(env_fn, steps: int = 10_000, learning_rate=1e-3, batch_size=256, model
         PPOConfig()
         .environment("reverse_auction")
         .framework("torch")
-        .rollouts(num_rollout_workers=6, num_envs_per_worker=1, rollout_fragment_length='auto')
+        .rollouts(num_env_runners=6, num_envs_per_worker=1, rollout_fragment_length='auto')
         # .evaluation(
         #         evaluation_interval= 50,
         #         evaluation_duration= 1,#irrelevant
@@ -56,6 +55,7 @@ def train(env_fn, steps: int = 10_000, learning_rate=1e-3, batch_size=256, model
                 "custom_model": "action_masked_model",
                 "fcnet_hiddens": [32, 32],
                 "fcnet_activation": "relu",
+                "vf_share_layers": True
             },
             entropy_coeff_schedule=[
                 [0, 0.9],  # Start with high exploration

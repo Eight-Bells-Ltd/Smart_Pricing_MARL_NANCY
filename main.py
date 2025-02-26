@@ -1,11 +1,7 @@
 import argparse
 import yaml
 from environment.reverse_auction_env import ReverseAuctionEnv
-from training.train import train
-from evaluation.evaluate import evaluate
-from testing.test import test
-from render.render import create_video_from_pngs
-import ray
+from ray import init, available_resources, shutdown
 
 
 def main():
@@ -21,23 +17,29 @@ def main():
     env_fn = ReverseAuctionEnv
 
 
-    ray.init(include_dashboard=False, ignore_reinit_error=True, log_to_driver=True)
-    print(ray.available_resources())
+    init(include_dashboard=False, ignore_reinit_error=True, log_to_driver=True)
+    print(available_resources())
 
     if args.mode == 'train':
+        from training.train import train
+
         train_config = config['training']
         train(env_fn, steps=train_config['steps'], learning_rate=train_config['learning_rate'],
               batch_size=train_config['batch_size'], model_path=config['model_path'], **env_kwargs)
     elif args.mode == 'test':
+        from testing.test import test
+
         eval_config = config['testing']
         test(env_fn, num_games=eval_config['num_games'],
                  model_path=config['model_path'], render_mode=eval_config['render_mode'], **env_kwargs)
         # create_video_from_pngs("outputs/pngs")
     elif args.mode == 'evaluate':
+        from evaluation.evaluate import evaluate
+
         eval_config = config['evaluation']
         evaluate(env_fn,  model_path=config['model_path'], render_mode=eval_config['render_mode'], **env_kwargs)
 
-    ray.shutdown()
+    shutdown()
 
 if __name__ == "__main__":
     main()
