@@ -9,7 +9,7 @@ def get_results(bids, agent_list):
     winner_data = {"winner": agent_list[np.argmin(bids)], "price": int(np.min(bids))}
 
     # Write results to a JSON file
-    with open('auction_results.json', 'w') as json_file:
+    with open('./outputs/auction_results.json', 'w') as json_file:
         json.dump(winner_data, json_file, indent=4)
 
     print("Data successfully written to auction_results.json")

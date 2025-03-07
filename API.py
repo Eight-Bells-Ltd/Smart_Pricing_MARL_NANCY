@@ -64,7 +64,7 @@ async def calculate_price(payload: ServicesPayload):
                  num_bidders=num_bidders, possible_agents=possible_agents, initial_prices=initial_prices,
                  min_limit_bid=providers_min_prices, max_limit_bid=initial_prices, max_rounds=max_rounds)
 
-        with open('auction_results.json', 'r') as json_file:
+        with open('./outputs/auction_results.json', 'r') as json_file:
             auction_result = json.load(json_file)
 
     response= {"provider_id":auction_result['winner'], "price":auction_result['price'], "service_id":service_name}
@@ -85,5 +85,5 @@ async def http_exception_handler(request: Request, exc: HTTPException):
     )
 
 
-if __name__ == "__main__":
-    run(smart_pricing_api, host="127.0.0.1", port=8000)
+# if __name__ == "__main__":
+#     run(smart_pricing_api, host="127.0.0.1", port=8000)

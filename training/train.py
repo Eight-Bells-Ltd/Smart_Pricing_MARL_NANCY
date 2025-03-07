@@ -121,7 +121,7 @@ def train(env_fn, steps: int = 10_000, learning_rate=1e-3, batch_size=256, model
                 plt.grid(True)
 
                 # Save the plot with a unique filename for each interval
-                plt.savefig(f"training_reward.png")
+                plt.savefig(f"./outputs/training_reward.png")
                 plt.close()  # Close the plot to free up memory
 
                 trainer.save(model_path+f'{i+1}')
