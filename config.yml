@@ -15,6 +15,6 @@ training:
   ent_coef: 0.9
   learning_rate: 0.001
   seed: 42
-  steps: 200
+  steps: 500
 model_path: models/test
 

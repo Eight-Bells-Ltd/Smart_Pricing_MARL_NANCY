@@ -7,7 +7,7 @@ multipliers = np.arange(1.99, 0.01, -0.01).round(2)
 def get_results(bids, agent_list):
     # Determine the winner and winning price
     winner_data = {"winner": agent_list[np.argmin(bids)], "price": int(np.min(bids))}
-    
+
     # Write results to a JSON file
     with open('auction_results.json', 'w') as json_file:
         json.dump(winner_data, json_file, indent=4)

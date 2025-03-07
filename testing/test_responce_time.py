@@ -1,8 +1,8 @@
 import requests
 import time
-from concurrent.futures import ThreadPoolExecutor, as_completed
+import matplotlib.pyplot as plt
 
-url = "http://127.0.0.1:8001/price_calculation"
+url = "http://127.0.0.1:8000/price_calculation"
 headers = {
     "accept": "application/json",
     "Content-Type": "application/json"
@@ -30,25 +30,25 @@ data = {
     ]
 }
 
+response_times = []
+iterations = 100  # Number of sequential requests
 
-def send_request():
+for i in range(iterations):
     start_time = time.time()
     response = requests.post(url, headers=headers, json=data)
     elapsed_time = (time.time() - start_time) * 1000  # Convert to milliseconds
-    return elapsed_time, response.status_code, response.text
+    response_times.append(elapsed_time)
+    print(f"Request {i+1}: {elapsed_time:.2f} ms | Status: {response.status_code}")
 
-
-total_time = 0
-iterations = 20  # Number of parallel requests
-concurrent_requests = 2  # Number of concurrent requests
-
-with ThreadPoolExecutor(max_workers=concurrent_requests) as executor:
-    futures = [executor.submit(send_request) for _ in range(iterations)]
-
-    for i, future in enumerate(as_completed(futures), 1):
-        elapsed_time, status_code, response_text = future.result()
-        total_time += elapsed_time
-        print(f"Request {i}: {elapsed_time:.2f} ms | Status: {status_code}")
-
-avg_time = total_time / iterations
+avg_time = sum(response_times) / iterations
 print(f"\nAverage Response Time: {avg_time:.2f} ms")
+
+# Plotting the frequency diagram of the response times
+plt.figure(figsize=(10, 6))
+plt.hist(response_times, bins=10, edgecolor='black')
+plt.axvline(avg_time, color='red', linestyle='dashed', linewidth=1, label=f'Average: {avg_time:.2f} ms')
+plt.xlabel('Response Time (ms)')
+plt.ylabel('Frequency')
+plt.title('Response Time Frequency Distribution')
+plt.legend()
+plt.savefig('response_time_histogram.png')

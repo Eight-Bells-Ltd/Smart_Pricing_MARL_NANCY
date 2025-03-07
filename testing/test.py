@@ -33,7 +33,7 @@ def analyze_auction_data(input_folder, output_folder, max_bidders=9, min_bidders
     winning_prices = []
     round_percentage_diffs = []
     winning_bid_diffs = []
-    participant_final_diffs = {f"provider_{i}": [] for i in range(9)}  # Track differences per participant
+    participant_final_diffs = {f"provider_{i}": [] for i in range(max_bidders)}  # Track differences per participant
     rank_differences = []  # Track differences between rank 1 and rank 2
 
     for file in all_files:
@@ -111,12 +111,25 @@ def analyze_auction_data(input_folder, output_folder, max_bidders=9, min_bidders
     plt.bar(sorted_winner_counts.keys(), sorted_winner_counts.values(), label="Actual Distribution")
 
     # Add theoretical distribution as a line plot
-    average_num_bidders = (min_bidders + max_bidders) / 2
-    providers = sorted(sorted_winner_counts.keys())
-    participation_prob = [(max_bidders - int(agent.split("_")[1])) / (max_bidders - min_bidders + 1) for agent in
-                          providers]
-    expected_wins = [total_auctions * prob * (1 / average_num_bidders) for prob in participation_prob]
-    plt.plot(providers, expected_wins, marker='o', linestyle='-', color='red', label="Theoretical Distribution")
+    expected_wins = {provider: 0 for provider in sorted(participant_final_diffs.keys())}
+
+    # Probability of an auction having N bidders (assuming uniform distribution)
+    auction_size_probabilities = {N: 1 / (max_bidders - min_bidders + 1) for N in range(min_bidders, max_bidders + 1)}
+    for N in range(min_bidders, max_bidders + 1):
+        P_N = auction_size_probabilities[N]  # Probability of having exactly N bidders in an auction
+
+        # Determine participants in an auction with N bidders
+        participants = ["provider_0", "provider_1"] + [f"provider_{i}" for i in range(2, N)]
+
+        # Each participant has a 1/N chance of winning
+        win_prob = 1 / N
+
+        # Compute expected wins for each provider
+        for provider in participants:
+            expected_wins[provider] += total_auctions * P_N * win_prob
+    # Sort expected wins for plotting
+    sorted_expected_wins = [expected_wins[provider] for provider in sorted(participant_final_diffs.keys())]
+    plt.plot(sorted(participant_final_diffs.keys()), sorted_expected_wins, marker='o', linestyle='-', color='red', label="Theoretical Distribution")
 
     plt.xlabel("Agents")
     plt.ylabel("Number of Wins")

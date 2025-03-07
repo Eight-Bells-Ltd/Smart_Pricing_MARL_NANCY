@@ -8,6 +8,7 @@ import time
 
 
 def evaluate(env_fn, render_mode: str | None = None, model_path='models/test', **env_kwargs):
+    start_time = time.perf_counter()
     # Load the environment
     def env_creator(_):
         env = env_fn(render_mode=render_mode, **env_kwargs)
@@ -36,6 +37,9 @@ def evaluate(env_fn, render_mode: str | None = None, model_path='models/test', *
         .build()
     )
     algo.restore(model_path)
+    end_time = time.perf_counter()
+    elapsed_time = end_time - start_time
+    print(f"env & loading : {elapsed_time:.6f} seconds")
 
     start_time = time.perf_counter()
 
@@ -47,7 +51,7 @@ def evaluate(env_fn, render_mode: str | None = None, model_path='models/test', *
 
     end_time = time.perf_counter()
     elapsed_time = end_time - start_time
-    print(f"Elapsed time: {elapsed_time:.6f} seconds")
+    print(f"running: {elapsed_time:.6f} seconds")
 
     # Print and return results
     print("Evaluation Results:")

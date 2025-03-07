@@ -54,6 +54,9 @@ class ReverseAuctionEnv(ParallelEnv):
             self.min_limit_bid = np.random.randint(20, 40, size=self.num_bidders)
             self.max_limit_bid = np.random.randint(80, 100, size=self.num_bidders)
             self.curr_bids = np.random.uniform(self.min_limit_bid, self.max_limit_bid)
+            # if self.num_bidders > 3:
+            #     self.curr_bids = [val + 50 if i != 3 else val for i, val in enumerate(self.curr_bids)]
+            #     self.max_limit_bid = np.maximum(self.max_limit_bid, self.curr_bids)
             self.possible_agents = ["provider_" + str(r) for r in range(self.num_bidders)]
 
         self.agents = self.possible_agents[:]

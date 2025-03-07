@@ -54,7 +54,7 @@ async def calculate_price(payload: ServicesPayload):
     service_name = services[0].service_id #TODO service_id is the same for all providers
     for service in services:
         possible_agents.append(service.provider_id)
-        initial_prices.append(service.maxprice)
+        initial_prices.append((service.maxprice+service.minprice)/2)
         providers_min_prices.append(service.minprice)
     num_bidders = len(possible_agents)
     max_rounds = 10
