@@ -2,9 +2,9 @@ environment:
   max_rounds: 10
   max_limit_bid: None
   min_limit_bid: None
-  initial_prices: None
   num_bidders: None
   possible_agents: None
+#  availability: None
 testing:
   num_games: 500
   render_mode: test

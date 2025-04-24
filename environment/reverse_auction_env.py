@@ -3,7 +3,8 @@ import numpy as np
 from gymnasium.spaces import Discrete, Dict, MultiBinary, Box
 from pettingzoo import ParallelEnv
 
-from utils.helpers import calculate_reward, update_bid, get_results, generate_action_mask
+from utils.helpers import calculate_reward, update_bid, get_results, generate_action_mask, get_results2
+
 
 class ReverseAuctionEnv(ParallelEnv):
     metadata = {
@@ -41,6 +42,14 @@ class ReverseAuctionEnv(ParallelEnv):
         self.reset()
 
     def reset(self, seed=None, options=None):
+        # If options are provided and use_init_values is True, override stored initial values
+        if options is not None and self.use_init_values:
+            self._init_num_bidders = options.get("num_bidders", None)
+            self._init_min_limit_bid = np.array(options.get("min_limit_bid", None))
+            self._init_max_limit_bid = np.array(options.get("max_limit_bid", None))
+            self._init_initial_prices = np.array(options.get("initial_prices", None))
+            self._init_possible_agents = options.get("possible_agents", None)
+
         if self.use_init_values:
             # Use stored initial values
             self.num_bidders = self._init_num_bidders
@@ -101,8 +110,8 @@ class ReverseAuctionEnv(ParallelEnv):
     def observation_space(self, agent):
         return Dict({
             'observations': Dict({
-                'current_rank': Discrete(100 + 1),
-                'previous_rank': Discrete(100 + 1),
+                'current_rank': Discrete(self.num_bidders + 1),
+                'previous_rank': Discrete(self.num_bidders + 1),
                 'remaining_rounds': Discrete(self.max_rounds + 1),
                 'my_bid_history': Box(0, np.inf, shape=(self.max_rounds,)),
                 # 'my_max': Box(0, np.inf),
@@ -139,20 +148,9 @@ class ReverseAuctionEnv(ParallelEnv):
 
             save_data(self.my_bid_history, "outputs/csvs", self.agent_name_mapping, self.min_limit_bid, self.max_limit_bid, auction_id=None)
         elif self.render_mode == "deploy" and self.done:
-            # output_folder = "outputs/pngs"
-            # render_env(
-            #     num_agents=len(self.possible_agents),
-            #     round_number=self.curr_round,
-            #     bids=self.curr_bids,
-            #     agent_list=self.possible_agents,
-            #     output_folder=output_folder
-            # )
-            # render_final_plot(self.possible_agents, "outputs/pngs/out.csv", output_folder)
-            # if self.done:
-            #     plot_all_rounds(self.my_bid_history, "outputs", self.agent_name_mapping, self.min_limit_bid,
-            #                     self.max_limit_bid)
-
-            get_results(self.curr_bids, self.possible_agents)
+            import evaluation.evaluate
+            evaluation.evaluate.previous_auction_winner = get_results2(self.curr_bids, self.possible_agents)
+            # get_results(self.curr_bids, self.possible_agents)
 
     def close(self):
         #for some reason close is called twice. and always on a !self.done env state

@@ -14,6 +14,12 @@ def get_results(bids, agent_list):
 
     print("Data successfully written to auction_results.json")
 
+def get_results2(bids, agent_list):
+    # Determine the winner and winning price
+    winner_data = {"winner": agent_list[np.argmin(bids)], "price": int(np.min(bids))}
+
+    return winner_data
+
 def update_bid(action, bid):
     return bid * multipliers[action]
 
@@ -39,22 +45,10 @@ def calculate_reward(current_rank, num_agents, min_limit_bid, curr_bid, max_limi
 
     return reward
 
-# def calculate_reward(current_rank, previous_rank, avg_min, bid, initial_bid, round, max_rounds):
-#
-#     reward = 20 if avg_min < bid < initial_bid else -80
-#
-#     if current_rank < previous_rank: reward += 10
-#
-#     # reward += 10 if current_rank < previous_rank else -10 if current_rank > previous_rank else 0
-#
-#     if round == max_rounds: reward += 5 * max_rounds if current_rank == 1 else -10 * max_rounds
-#
-#     return reward
-
 
 def generate_action_mask(curr_bid, max_bid, min_bid):
     if curr_bid > max_bid or curr_bid < min_bid:
-        print(f"!! ERROR !! min={min_bid} curr_bid={round(curr_bid,2)} max={max_bid}")
+        print(f"\n!! ERROR !! min={min_bid} curr_bid={round(curr_bid,2)} max={max_bid}\n")
         # pass
 
     # Calculate all potential new bids
@@ -64,3 +58,46 @@ def generate_action_mask(curr_bid, max_bid, min_bid):
     mask = mask.astype(np.int8)
 
     return mask
+
+
+def load_balancing(min_bids, max_bids, availability):
+    availability = [100-x for x in availability]
+    # Get overall min and max of availability for normalization
+    avail_min = min(availability)
+    avail_max = max(availability)
+
+    new_min_bids = []
+    new_max_bids = []
+    initial_bids = []
+
+    for old_min, old_max, avail in zip(min_bids, max_bids, availability):
+        # Normalize the availability
+        if avail_max != avail_min:
+            norm = (avail - avail_min) / (avail_max - avail_min)
+        else:
+            norm = 0  # If all values are the same, no adjustment
+
+        # Adjust min bid based on normalized availability.
+        # The factor here scales the maximum adjustment
+        addition = norm * (old_max - old_min) * 0.2
+        new_min = old_min + addition
+
+        # If new min is higher than current max, adjust the max bid accordingly
+        if new_min >= old_max:
+            new_max = new_min + (old_max - old_min)
+        else:
+            new_max = old_max
+
+        # The initial bid is the midpoint between new min and new max
+        mid = (new_min + new_max) / 2
+
+        new_min_bids.append(new_min)
+        new_max_bids.append(new_max)
+        initial_bids.append(mid)
+
+    print(min_bids, max_bids, availability)
+    print(new_min_bids, new_max_bids, initial_bids)
+
+    return new_min_bids, new_max_bids, initial_bids
+
+print(load_balancing([20,30,40],[90,100,80],[40,70,80]))

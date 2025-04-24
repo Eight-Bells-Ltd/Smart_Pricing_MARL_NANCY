@@ -16,8 +16,14 @@ def main():
     env_kwargs = config['environment']
     env_fn = ReverseAuctionEnv
 
-
-    init(include_dashboard=False, ignore_reinit_error=True, log_to_driver=True)
+    init(
+        include_dashboard=False,
+        ignore_reinit_error=True,
+        log_to_driver=False,  # Disables logging to the driver
+        _system_config={
+            "metrics_report_interval_ms": 0,  # Disables periodic metrics reporting
+        }
+    )
     print(available_resources())
 
     if args.mode == 'train':
@@ -37,10 +43,10 @@ def main():
         from evaluation.evaluate import evaluate
 
         eval_config = config['evaluation']
-        evaluate(env_fn,  model_path=config['model_path'], render_mode=eval_config['render_mode'], **env_kwargs)
+        result = evaluate(env_fn,  model_path=config['model_path'], render_mode=eval_config['render_mode'], **env_kwargs)
+        print(result)
 
     shutdown()
 
 if __name__ == "__main__":
     main()
-    #test

@@ -6,13 +6,10 @@ from pydantic import BaseModel
 from typing import List
 from ray import init, available_resources
 from uvicorn import run
-import asyncio
 
 from evaluation.evaluate import evaluate
 from environment.reverse_auction_env import ReverseAuctionEnv
-
-# Create a global lock
-request_lock = asyncio.Lock()
+from utils.helpers import load_balancing
 
 
 smart_pricing_api = FastAPI(
@@ -35,7 +32,9 @@ class Service(BaseModel):
     provider_id: str
     minprice: float
     maxprice: float
+    availability: float
     service_id: str
+
 
 class ServicesPayload(BaseModel):
     services: List[Service]
@@ -46,28 +45,30 @@ async def docs_redirect():
 
 @smart_pricing_api.post("/price_calculation")
 async def calculate_price(payload: ServicesPayload):
-
     services = payload.services
     possible_agents = []
-    initial_prices = []
     providers_min_prices = []
+    providers_max_prices = []
+    providers_availability = []
     service_name = services[0].service_id #TODO service_id is the same for all providers
     for service in services:
         possible_agents.append(service.provider_id)
-        initial_prices.append((service.maxprice+service.minprice)/2)
+        providers_max_prices.append(service.maxprice)
         providers_min_prices.append(service.minprice)
+        providers_availability.append(service.availability)
     num_bidders = len(possible_agents)
     max_rounds = 10
 
-    async with request_lock: #TODO can NOT handle parallel requests due to results passed through files
-        evaluate(ReverseAuctionEnv, model_path="models/test", render_mode="deploy", use_init_values = True,
-                 num_bidders=num_bidders, possible_agents=possible_agents, initial_prices=initial_prices,
-                 min_limit_bid=providers_min_prices, max_limit_bid=initial_prices, max_rounds=max_rounds)
+    providers_min_prices, providers_max_prices, initial_prices = load_balancing(providers_min_prices, providers_max_prices, providers_availability)
+    # initial_prices = [(max + min) / 2 for max, min in zip(providers_max_prices,providers_min_prices)]
 
-        with open('./outputs/auction_results.json', 'r') as json_file:
-            auction_result = json.load(json_file)
+    auction_result = evaluate(ReverseAuctionEnv, model_path="models/test", render_mode="deploy", use_init_values = True,
+             num_bidders=num_bidders, possible_agents=possible_agents, initial_prices=initial_prices,
+             min_limit_bid=providers_min_prices, max_limit_bid=providers_max_prices, max_rounds=max_rounds)
+
 
     response= {"provider_id":auction_result['winner'], "price":auction_result['price'], "service_id":service_name}
+    print(response)
     return {"services": response}
 
 @smart_pricing_api.exception_handler(ValidationError)
@@ -85,5 +86,5 @@ async def http_exception_handler(request: Request, exc: HTTPException):
     )
 
 
-# if __name__ == "__main__":
-#     run(smart_pricing_api, host="127.0.0.1", port=8000)
+if __name__ == "__main__":
+    run(smart_pricing_api, host="127.0.0.1", port=8000)

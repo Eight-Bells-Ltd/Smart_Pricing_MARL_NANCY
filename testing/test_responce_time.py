@@ -13,25 +13,28 @@ data = {
             "provider_id": "OTE",
             "minprice": 50.0,
             "maxprice": 100.0,
+            "availability": 30,
             "service_id": "service_1"
         },
         {
             "provider_id": "Vodafone",
             "minprice": 60.0,
             "maxprice": 90.0,
-            "service_id": "service_2"
+            "availability": 50,
+            "service_id": "service_1"
         },
         {
             "provider_id": "8Bells",
             "minprice": 55.0,
             "maxprice": 95.0,
-            "service_id": "service_3"
+            "availability": 80,
+            "service_id": "service_1"
         }
     ]
 }
 
 response_times = []
-iterations = 100  # Number of sequential requests
+iterations = 10  # Number of sequential requests
 
 for i in range(iterations):
     start_time = time.time()
@@ -51,4 +54,4 @@ plt.xlabel('Response Time (ms)')
 plt.ylabel('Frequency')
 plt.title('Response Time Frequency Distribution')
 plt.legend()
-plt.savefig('./outputs/response_time_histogram.png')
+plt.savefig('../outputs/response_time_histogram.png')

@@ -4,18 +4,21 @@
       "provider_id": "OTE",
       "minprice": 50.0,
       "maxprice": 100.0,
+      "availability": 30,
       "service_id": "service_1"
     },
     {
       "provider_id": "Vodafone",
       "minprice": 60.0,
       "maxprice": 90.0,
+      "availability": 60,
       "service_id": "service_1"
     },
     {
       "provider_id": "8Bells",
       "minprice": 55.0,
       "maxprice": 95.0,
+      "availability": 10,
       "service_id": "service_1"
     }
   ]

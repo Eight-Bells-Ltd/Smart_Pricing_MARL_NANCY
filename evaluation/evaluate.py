@@ -1,59 +1,85 @@
-from ray.rllib.env import ParallelPettingZooEnv
 import os
+import time
+from ray.rllib.env import ParallelPettingZooEnv
 from ray.tune.registry import register_env
 from agents.ppo_agent import ActionMaskedModel
 from ray.rllib.models import ModelCatalog
 from ray.rllib.algorithms.ppo import PPOConfig
-import time
+
+previous_auction_winner = {}
+LOADED_ALGO = None  # Global variable to hold the loaded algorithm
 
 
 def evaluate(env_fn, render_mode: str | None = None, model_path='models/test', **env_kwargs):
-    start_time = time.perf_counter()
-    # Load the environment
-    def env_creator(_):
-        env = env_fn(render_mode=render_mode, **env_kwargs)
-        return ParallelPettingZooEnv(env)
+    """
+    Evaluates the model with the given environment initial conditions.
 
-    ModelCatalog.register_custom_model("action_masked_model", ActionMaskedModel)
-    register_env("reverse_auction", env_creator)
+    On first call, the environment and model are created and loaded.
+    On subsequent calls, the evaluation environments are reset with the new options.
+    """
+    global LOADED_ALGO
 
-    # Set up the model path
-    model_path = os.path.abspath(model_path)
+    if LOADED_ALGO is None:
+        start_time = time.perf_counter()
 
-    # Define a config for evaluation, enabling `create_env_on_driver`
-    algo = (
-        PPOConfig()
-        .environment("reverse_auction")
-        .framework("torch")  # Or "tf" depending on your setup
-        .rollouts(num_env_runners=0)
-        .training(model={"custom_model": "action_masked_model"}, entropy_coeff=0.01)
-        .evaluation(
-            evaluation_interval=1,
-            evaluation_duration=1,
-            evaluation_duration_unit="episodes",
-            evaluation_config={"env_config": {"render_mode": render_mode}, "explore": True},
+        # Define an environment creator that merges RLlib's config with env_kwargs.
+        def env_creator(config):
+            # Merge the evaluation config with the initial conditions provided in env_kwargs.
+            merged_config = {**env_kwargs, **config}
+            # Remove "render_mode" if present to avoid duplicates.
+            merged_config.pop("render_mode", None)
+            env = env_fn(render_mode=render_mode, **merged_config)
+            return ParallelPettingZooEnv(env)
+
+        # Register the custom model and environment.
+        ModelCatalog.register_custom_model("action_masked_model", ActionMaskedModel)
+        register_env("reverse_auction", env_creator)
+
+        # Convert the model_path to an absolute path.
+        model_path = os.path.abspath(model_path)
+
+        # Build the PPO algorithm configuration.
+        algo = (
+            PPOConfig()
+            .environment("reverse_auction")
+            .framework("torch")  # Or "tf" if you're using TensorFlow
+            .rollouts(num_env_runners=0)
+            .training(model={"custom_model": "action_masked_model"}, entropy_coeff=0.01)
+            .evaluation(
+                evaluation_interval=1,
+                evaluation_duration=1,
+                evaluation_duration_unit="episodes",
+                evaluation_config={
+                    "env_config": {"render_mode": render_mode, **env_kwargs},
+                    "explore": True,
+                },
+            )
+            .resources(num_gpus=0)
+            .build()
         )
-        .resources(num_gpus=0)
-        .build()
-    )
-    algo.restore(model_path)
-    end_time = time.perf_counter()
-    elapsed_time = end_time - start_time
-    print(f"env & loading : {elapsed_time:.6f} seconds")
+
+        # Restore the model from the specified path.
+        algo.restore(model_path)
+        LOADED_ALGO = algo
+
+        end_time = time.perf_counter()
+        print(f"env & loading : {end_time - start_time:.6f} seconds")
+    else:
+        # When the algorithm is already loaded, reset the evaluation environments
+        # with the latest initial conditions via the options parameter.
+        if LOADED_ALGO.eval_env_runner is not None:
+            LOADED_ALGO.eval_env_runner.env.reset(options=env_kwargs)
+            LOADED_ALGO.env_runner.env.reset(options=env_kwargs)
+            LOADED_ALGO.env_runner_group.local_env_runner.env.reset(options=env_kwargs)
+            LOADED_ALGO.eval_env_runner_group.local_env_runner.env.reset(options=env_kwargs)
 
     start_time = time.perf_counter()
 
-    # Run evaluation directly
-    results = algo.evaluate()
-
-    # Extract mean reward
-    mean_rewards = results["env_runners"]["policy_reward_mean"]
+    # Run evaluation (which now uses the reset environments with the updated conditions)
+    results = LOADED_ALGO.evaluate()
 
     end_time = time.perf_counter()
-    elapsed_time = end_time - start_time
-    print(f"running: {elapsed_time:.6f} seconds")
+    print(f"running: {end_time - start_time:.6f} seconds")
 
-    # Print and return results
-    print("Evaluation Results:")
-    print(f"Mean rewards over {1} games:", mean_rewards)
-    algo.stop()
+    # Return previous_auction_winner (ensure that your evaluation logic updates this global as expected)
+    return previous_auction_winner
