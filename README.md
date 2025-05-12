@@ -12,6 +12,35 @@ torch==2.5.1+cu124
 torchaudio==2.5.1+cu124
 torchvision==0.20.1+cu124
 
+to create container:
+sudo docker build -t spm_api .
+
+sudo docker rm -f smart_pricing_container
+
+sudo docker run -d -p 8000:8000 --name smart_pricing_container spm_api
+
+sudo docker ps
+
+curl -X POST http://localhost:8000/price_calculation \
+  -H "Content-Type: application/json" \
+  -d '{
+    "services": [
+      {
+        "provider_id": "provider_1",
+        "minprice": 100.0,
+        "maxprice": 200.0,
+        "availability": 0.9,
+        "service_id": "service_a"
+      },
+      {
+        "provider_id": "provider_2",
+        "minprice": 150.0,
+        "maxprice": 300.0,
+        "availability": 0.7,
+        "service_id": "service_b"
+      }
+    ]
+  }'
   
 
 This project implements a reverse auction environment using the PettingZoo library and trains agents using Stable Baselines 3. The environment simulates a reverse auction where multiple agents compete by submitting bids, with the goal of offering the lowest price while maintaining a profitable position.
