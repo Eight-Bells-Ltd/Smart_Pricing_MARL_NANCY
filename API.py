@@ -86,5 +86,5 @@ async def http_exception_handler(request: Request, exc: HTTPException):
     )
 
 
-if __name__ == "__main__":
-    run(smart_pricing_api, host="127.0.0.1", port=8000)
+# if __name__ == "__main__":
+#     run(smart_pricing_api, host="127.0.0.1", port=8000)

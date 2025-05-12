@@ -6,6 +6,12 @@
 
 ![Python Version](https://img.shields.io/badge/python-3.8.11-blue.svg)
 
+!!! FOR THE CONTAINER
+remove the +cu124 from the requirements.txt to install in the container
+torch==2.5.1+cu124
+torchaudio==2.5.1+cu124
+torchvision==0.20.1+cu124
+
   
 
 This project implements a reverse auction environment using the PettingZoo library and trains agents using Stable Baselines 3. The environment simulates a reverse auction where multiple agents compete by submitting bids, with the goal of offering the lowest price while maintaining a profitable position.
