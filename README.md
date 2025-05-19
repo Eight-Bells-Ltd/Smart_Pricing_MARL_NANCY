@@ -6,6 +6,8 @@
 
 ![Python Version](https://img.shields.io/badge/python-3.8.11-blue.svg)
 
+docker 8000 prt exposed here https://nancy-smart-pricing.8bellsresearch.com/
+
 !!! FOR THE CONTAINER
 remove the +cu124 from the requirements.txt to install in the container
 torch==2.5.1+cu124
