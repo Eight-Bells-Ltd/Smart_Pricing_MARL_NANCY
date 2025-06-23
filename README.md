@@ -156,6 +156,10 @@ To retrain from scratch or fine-tune, modify config.yml or pass CLI arguments as
 ## 📄 License
 This project is licensed under the GNU General Public License v3.0 `license.txt`.
 
+## ✉️ Contact
+
+For inquiries, please reach out to [ilias.theodoropoulos@8bellsresearch.com](ilias.theodoropoulos@8bellsresearch.com) or [stratos.vamvourelis@8bellsresearch.com](stratos.vamvourelis@8bellsresearch.com).
+
 ## 🙏 Acknowledgements
 
 This project uses the following open-source libraries:
@@ -166,7 +170,5 @@ This project uses the following open-source libraries:
 - [Matplotlib](https://matplotlib.org/)
 - [OpenCV](https://opencv.org/)
 
-## ✉️ Contact
-
-For inquiries, please reach out to [ilias.theodoropoulos@8bellsresearch.com](ilias.theodoropoulos@8bellsresearch.com) or [stratos.vamvourelis@8bellsresearch.com](stratos.vamvourelis@8bellsresearch.com).
-
+The project has received funding from the Smart Networks and Services Joint Undertaking (SNS JU) under the European Union’s Horizon Europe research and innovation programme under Grant Agreement No 101096456.
+![](https://github.com/Eight-Bells-Ltd/Smart_Pricing_MARL_NANCY/blob/RLlib/eu_co_funded_en.jpg?raw=true) ![](https://github.com/Eight-Bells-Ltd/Smart_Pricing_MARL_NANCY/blob/RLlib/SNS-logo-colour-web-Trimmed.png?raw=true)
