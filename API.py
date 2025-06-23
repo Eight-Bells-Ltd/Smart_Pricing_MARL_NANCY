@@ -50,7 +50,7 @@ async def calculate_price(payload: ServicesPayload):
     providers_min_prices = []
     providers_max_prices = []
     providers_availability = []
-    service_name = services[0].service_id #TODO service_id is the same for all providers
+    service_name = services[0].service_id #service_id is the same for all providers
     for service in services:
         possible_agents.append(service.provider_id)
         providers_max_prices.append(service.maxprice)

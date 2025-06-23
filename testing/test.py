@@ -176,9 +176,9 @@ def analyze_auction_data(input_folder, output_folder, max_bidders=9, min_bidders
         "Percentage of Lowest Starting Price Wins": (lowest_start_winner_count / total_auctions) * 100,
         "Percentage of Lowest Min Limit Price Wins": (lowest_min_limit_winner_count / total_auctions) * 100,
         "Percentage of Agents Bidding Lowest Possible Bid": (lowest_bid_counts / (
-                    len(all_files) * len(winner_counts))) * 100, #FIXME mallon ine la8os
+                    len(all_files) * len(winner_counts))) * 100, #FIXME probably wrong calculation
         "Percentage of Agents Bidding Highest Possible Bid": (highest_bid_counts / (
-                    len(all_files) * len(winner_counts))) * 100 #FIXME mallon ine la8os
+                    len(all_files) * len(winner_counts))) * 100 #FIXME probably wrong calculation
     }
 
     stats_file = os.path.join(output_folder, "auction_statistics.txt")

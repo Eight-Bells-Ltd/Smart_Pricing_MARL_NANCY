@@ -2,27 +2,18 @@
 
 # 🏆 Reverse Auction Environment
 
-  
 
 ![Python Version](https://img.shields.io/badge/python-3.8.11-blue.svg)
 
+This project implements a reverse auction environment using the PettingZoo library and trains agents using Ray RLlib. The environment simulates a reverse auction where multiple agents compete by submitting bids, with the goal of offering the lowest price while maintaining a profitable position.
+
+
 docker 8000 prt exposed here https://nancy-smart-pricing.8bellsresearch.com/
 
-!!! FOR THE CONTAINER
-remove the +cu124 from the requirements.txt to install in the container
-torch==2.5.1+cu124
-torchaudio==2.5.1+cu124
-torchvision==0.20.1+cu124
+## API Example Request
+Send a sample request using curl:
 
-to create container:
-sudo docker build -t spm_api .
-
-sudo docker rm -f smart_pricing_container
-
-sudo docker run -d -p 8000:8000 --name smart_pricing_container spm_api
-
-sudo docker ps
-
+```bash
 curl -X POST http://localhost:8000/price_calculation \
   -H "Content-Type: application/json" \
   -d '{
@@ -43,15 +34,9 @@ curl -X POST http://localhost:8000/price_calculation \
       }
     ]
   }'
-  
-
-This project implements a reverse auction environment using the PettingZoo library and trains agents using Stable Baselines 3. The environment simulates a reverse auction where multiple agents compete by submitting bids, with the goal of offering the lowest price while maintaining a profitable position.
-
-  
+```
 
 ## 🌟 Features
-
-  
 
 - Custom Reverse Auction Environment
 
@@ -63,25 +48,15 @@ This project implements a reverse auction environment using the PettingZoo libra
 
 - Automatic video generation of auction processes
 
-  
-
 ## 🚀 Quick Start
-
-  
 
 ### Prerequisites
 
-  
-
-- Anaconda or Miniconda
+- Anaconda or Miniconda or pip
 
 - Git
 
-  
-
 ### Installation
-
-  
 
 1. Clone the repository:
 
@@ -111,19 +86,11 @@ pip install -r requirements.txt
 
 ```
 
-  
-
 ## 🏃‍♂️ Usage
-
-  
 
 ### Training
 
-  
-
 Initiate the training process:
-
-  
 
 ```bash
 
@@ -133,15 +100,9 @@ python  main.py  --mode  train
 
 This command launches the PPO algorithm to train your agents. The trained model will be saved in the `models` directory.
 
-  
-
 ### Evaluation
 
-  
-
 Evaluate your trained agents:
-
-  
 
 ```bash
 
@@ -155,15 +116,9 @@ This loads the most recent model and runs evaluation episodes, printing results 
 
 You can adjust training parameters and environment settings via the `config.yml` file, such as learning rate, number of agents, and auction rounds.
 
-  
-
 ## 🧪 Environment Details
 
-  
-
 The `ReverseAuctionEnv` is a custom implementation using PettingZoo's `ParallelEnv`. Key features include:
-
-  
 
 - Multiple bidding agents
 
@@ -172,7 +127,6 @@ The `ReverseAuctionEnv` is a custom implementation using PettingZoo's `ParallelE
 - Observations including current rank, previous rank, and current round
 
 - Rewards based on rank improvements, bid values, and final positions
-
 
 ### Example Environment State
 
@@ -183,43 +137,36 @@ The `ReverseAuctionEnv` is a custom implementation using PettingZoo's `ParallelE
 | A3    | $60         | 3    | 3             | 3     |
 
 
-  
-
 ## 📊 Visualization
 
-  
-
-The environment includes a rendering function that creates plots of each auction round. These plots are saved as PNG files in the `outputs/pngs` directory.
+The environment includes a rendering function that creates plots of each auction round. These plots are saved as PNG files in the `outputs/` directory.
   
 
 After evaluation, a video is automatically generated from these PNG files, providing a visual representation of the auction process. This video is saved in the `outputs` directory.
 
-  
-
 ## ⚙️ Customization
-
-  
 
 Fine-tune various parameters of the environment and training/evaluation process by editing the `config.yml` file.
 
-  
+## 📦 Pretrained Model
+A pretrained PPO model is included for immediate evaluation or fine-tuning in `models/`.
+
+To retrain from scratch or fine-tune, modify config.yml or pass CLI arguments as needed.
+
+## 📄 License
+This project is licensed under the GNU General Public License v3.0 `license.txt`.
 
 ## 🙏 Acknowledgements
-
-  
 
 This project uses the following open-source libraries:
 
 - [PettingZoo](https://github.com/PettingZoo-Team/PettingZoo)
-
-- [Stable Baselines 3](https://github.com/DLR-RM/stable-baselines3)
-
+- [Ray](https://github.com/ray-project/ray)
 - [NumPy](https://numpy.org/)
-
 - [Matplotlib](https://matplotlib.org/)
 - [OpenCV](https://opencv.org/)
-- [SuperSuit](https://github.com/PettingZoo-Team/SuperSuit)
 
 ## ✉️ Contact
 
-For inquiries, please reach out to [ilias.theodoropoulos@8bellsresearch.com](ilias.theodoropoulos@8bellsresearch.com).
+For inquiries, please reach out to [ilias.theodoropoulos@8bellsresearch.com](ilias.theodoropoulos@8bellsresearch.com) or [stratos.vamvourelis@8bellsresearch.com](stratos.vamvourelis@8bellsresearch.com).
+
