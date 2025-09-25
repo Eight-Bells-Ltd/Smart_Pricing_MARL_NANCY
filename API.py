@@ -46,6 +46,17 @@ async def docs_redirect():
 @smart_pricing_api.post("/price_calculation")
 async def calculate_price(payload: ServicesPayload):
     services = payload.services
+    if len(services) == 1:
+        service = services[0]
+        # You can choose how to pick the price: min, max, or something in between
+        chosen_price = (service.minprice + service.maxprice) / 2  # midpoint, for example
+        response = {
+            "provider_id": service.provider_id,
+            "price": chosen_price,
+            "service_id": service.service_id,
+        }
+        print(response)
+        return {"services": response}
     possible_agents = []
     providers_min_prices = []
     providers_max_prices = []
