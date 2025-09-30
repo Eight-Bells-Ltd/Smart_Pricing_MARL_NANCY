@@ -54,9 +54,6 @@ def _validate_services(services: list[Service]) -> None:
     # All services must share the same service_id
     service_id = services[0].service_id
     for s in services:
-        if s.service_id != service_id:
-            raise HTTPException(status_code=422, detail="all services must share the same service_id")
-
         if s.minprice > s.maxprice:
             raise HTTPException(
                 status_code=422,
@@ -106,7 +103,6 @@ async def calculate_price(payload: ServicesPayload):
         providers_min_prices = [s.minprice for s in services]
         providers_max_prices = [s.maxprice for s in services]
         providers_availability = [s.availability for s in services]
-        service_name = services[0].service_id
 
         num_bidders = len(possible_agents)
         max_rounds = 10
@@ -119,10 +115,16 @@ async def calculate_price(payload: ServicesPayload):
              num_bidders=num_bidders, possible_agents=possible_agents, initial_prices=initial_prices,
              min_limit_bid=providers_min_prices, max_limit_bid=providers_max_prices, max_rounds=max_rounds)
 
+        winner_id = auction_result["winner"]
+        winner_service = next((s for s in services if s.provider_id == winner_id), None)
+
+        if not winner_service:
+            raise HTTPException(status_code=500, detail="Internal error: Winner provider not found in request")
+
         response = {
-            "provider_id": auction_result["winner"],
+            "provider_id": winner_id,
             "price": auction_result["price"],
-            "service_id": service_name,
+            "service_id": winner_service.service_id,
         }
         logger.info(f"Auction successful: {response}")
         return {"services": response}
@@ -137,7 +139,7 @@ async def calculate_price(payload: ServicesPayload):
 # ---- Exception Handlers ----
 @smart_pricing_api.exception_handler(HTTPException)
 async def http_exception_handler(request: Request, exc: HTTPException):
-    logger.error(f"http_exception_handler: {exc.detail}/n in request: {request}", exc_info=True)
+    logger.error(f"http_exception_handler: {exc.detail}\n in request: {request}", exc_info=True)
     return JSONResponse(
         status_code=exc.status_code,
         content={"message": exc.detail},
@@ -146,7 +148,7 @@ async def http_exception_handler(request: Request, exc: HTTPException):
 
 @smart_pricing_api.exception_handler(Exception)
 async def general_exception_handler(request: Request, exc: Exception):
-    logger.error(f"Unhandled exception: {str(Exception)}/n in request: {request}", exc_info=True)
+    logger.error(f"Unhandled exception: {str(Exception)}\n in request: {request}", exc_info=True)
     return JSONResponse(
         status_code=500,
         content={"message": "Unexpected error", "details": str(exc)},
