@@ -1,6 +1,6 @@
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import JSONResponse, RedirectResponse
-from pydantic import ValidationError, BaseModel
+from pydantic import BaseModel
 from typing import List
 from ray import init
 import ray
@@ -46,22 +46,51 @@ class Service(BaseModel):
 class ServicesPayload(BaseModel):
     services: List[Service]
 
+# --- Validation helper ---
+def _validate_services(services: list[Service]) -> None:
+    if not services:
+        raise HTTPException(status_code=422, detail="services list must not be empty")
+
+    # All services must share the same service_id
+    service_id = services[0].service_id
+    for s in services:
+        if s.service_id != service_id:
+            raise HTTPException(status_code=422, detail="all services must share the same service_id")
+
+        if s.minprice > s.maxprice:
+            raise HTTPException(
+                status_code=422,
+                detail=f"minprice > maxprice for provider {s.provider_id}"
+            )
+
+        if not (0.0 <= s.availability <= 1.0):
+            raise HTTPException(
+                status_code=422,
+                detail=f"availability must be in [0,1] for provider {s.provider_id}"
+            )
+
+    # No duplicate provider_ids
+    seen = set()
+    for s in services:
+        if s.provider_id in seen:
+            raise HTTPException(
+                status_code=422,
+                detail=f"duplicate provider_id detected: {s.provider_id}"
+            )
+        seen.add(s.provider_id)
 
 @smart_pricing_api.get("/")
 async def docs_redirect():
     return RedirectResponse(url="/docs")
 
 
-# Wrap evaluate inside a Ray task so failures don’t poison the main worker
-@ray.remote
-def safe_evaluate(*args, **kwargs):
-    return evaluate(*args, **kwargs)
-
-
 @smart_pricing_api.post("/price_calculation")
 async def calculate_price(payload: ServicesPayload):
     try:
         services = payload.services
+
+        _validate_services(services)
+
         if len(services) == 1:
             service = services[0]
             chosen_price = (service.minprice + service.maxprice) / 2
@@ -86,20 +115,9 @@ async def calculate_price(payload: ServicesPayload):
             providers_min_prices, providers_max_prices, providers_availability
         )
 
-        auction_result = ray.get(
-            safe_evaluate.remote(
-                ReverseAuctionEnv,
-                model_path="models/test",
-                render_mode="deploy",
-                use_init_values=True,
-                num_bidders=num_bidders,
-                possible_agents=possible_agents,
-                initial_prices=initial_prices,
-                min_limit_bid=providers_min_prices,
-                max_limit_bid=providers_max_prices,
-                max_rounds=max_rounds,
-            )
-        )
+        auction_result = evaluate(ReverseAuctionEnv, model_path="models/test", render_mode="deploy", use_init_values = True,
+             num_bidders=num_bidders, possible_agents=possible_agents, initial_prices=initial_prices,
+             min_limit_bid=providers_min_prices, max_limit_bid=providers_max_prices, max_rounds=max_rounds)
 
         response = {
             "provider_id": auction_result["winner"],
@@ -109,26 +127,17 @@ async def calculate_price(payload: ServicesPayload):
         logger.info(f"Auction successful: {response}")
         return {"services": response}
 
-    except ValidationError as ve:
-        logger.warning(f"Validation failed: {ve}")
-        raise HTTPException(status_code=422, detail=f"Validation failed: {ve}")
+    except HTTPException as ve:
+        raise
     except Exception as e:
-        logger.error("Unexpected error in /price_calculation", exc_info=True)
         raise HTTPException(status_code=500, detail=f"Internal error: {str(e)}")
 
 
 
 # ---- Exception Handlers ----
-@smart_pricing_api.exception_handler(ValidationError)
-async def validation_exception_handler(request: Request, exc: ValidationError):
-    return JSONResponse(
-        status_code=422,
-        content={"message": "Invalid payload format", "details": exc.errors()},
-    )
-
-
 @smart_pricing_api.exception_handler(HTTPException)
 async def http_exception_handler(request: Request, exc: HTTPException):
+    logger.error(f"http_exception_handler: {exc.detail}/n in request: {request}", exc_info=True)
     return JSONResponse(
         status_code=exc.status_code,
         content={"message": exc.detail},
@@ -137,7 +146,7 @@ async def http_exception_handler(request: Request, exc: HTTPException):
 
 @smart_pricing_api.exception_handler(Exception)
 async def general_exception_handler(request: Request, exc: Exception):
-    logger.error(f"Unhandled exception at {request.url}", exc_info=True)
+    logger.error(f"Unhandled exception: {str(Exception)}/n in request: {request}", exc_info=True)
     return JSONResponse(
         status_code=500,
         content={"message": "Unexpected error", "details": str(exc)},
