@@ -20,6 +20,9 @@ def _fingerprint(model_path, render_mode, env_kwargs):
         tuple(sorted(env_kwargs.get("possible_agents", []))),
         env_kwargs.get("num_bidders"),
         env_kwargs.get("max_rounds"),
+        env_kwargs.get("initial_prices"),
+        env_kwargs.get("min_limit_bid"),
+        env_kwargs.get("max_limit_bid"),
     )
 
 def reset_algo_if_loaded():
