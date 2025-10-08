@@ -51,30 +51,29 @@ def _validate_services(services: list[Service]) -> None:
     if not services:
         raise HTTPException(status_code=422, detail="services list must not be empty")
 
-    # All services must share the same service_id
-    service_id = services[0].service_id
     for s in services:
         if s.minprice > s.maxprice:
             raise HTTPException(
                 status_code=422,
-                detail=f"minprice > maxprice for provider {s.provider_id}"
+                detail=f"minprice > maxprice for provider {s.provider_id}, service {s.service_id}"
             )
 
         if not (0.0 <= s.availability <= 1.0):
             raise HTTPException(
                 status_code=422,
-                detail=f"availability must be in [0,1] for provider {s.provider_id}"
+                detail=f"availability must be in [0,1] for provider {s.provider_id}, service {s.service_id}"
             )
 
-    # No duplicate provider_ids
-    seen = set()
+    # No duplicate (provider_id, service_id) combinations
+    seen_pairs = set()
     for s in services:
-        if s.provider_id in seen:
+        key = (s.provider_id, s.service_id)
+        if key in seen_pairs:
             raise HTTPException(
                 status_code=422,
-                detail=f"duplicate provider_id detected: {s.provider_id}"
+                detail=f"duplicate (provider_id, service_id) detected: {key}"
             )
-        seen.add(s.provider_id)
+        seen_pairs.add(key)
 
 @smart_pricing_api.get("/")
 async def docs_redirect():
@@ -99,7 +98,16 @@ async def calculate_price(payload: ServicesPayload):
             logger.info(f"Single-service calculation successful: {response}")
             return {"services": response}
 
-        possible_agents = [s.provider_id for s in services]
+        # create a unique mapping for (provider_id, service_id)
+        id_map = {}
+        reverse_map = {}
+        for idx, s in enumerate(services):
+            unique_key = (s.provider_id, s.service_id)
+            internal_id = f"agent_{idx}"
+            id_map[unique_key] = internal_id
+            reverse_map[internal_id] = unique_key
+
+        possible_agents = [id_map[(s.provider_id, s.service_id)] for s in services]
         providers_min_prices = [s.minprice for s in services]
         providers_max_prices = [s.maxprice for s in services]
         providers_availability = [s.availability for s in services]
@@ -115,16 +123,21 @@ async def calculate_price(payload: ServicesPayload):
              num_bidders=num_bidders, possible_agents=possible_agents, initial_prices=initial_prices,
              min_limit_bid=providers_min_prices, max_limit_bid=providers_max_prices, max_rounds=max_rounds)
 
-        winner_id = auction_result["winner"]
-        winner_service = next((s for s in services if s.provider_id == winner_id), None)
+        winner_provider_id, winner_service_id = reverse_map[auction_result["winner"]]
 
+        # sanity check!
+        winner_service = next(
+            (s for s in services if s.provider_id == winner_provider_id and s.service_id == winner_service_id),
+            None
+        )
         if not winner_service:
-            raise HTTPException(status_code=500, detail="Internal error: Winner provider not found in request")
+            raise HTTPException(status_code=500, detail="Internal error: Winner service not found in request")
+
 
         response = {
-            "provider_id": winner_id,
+            "provider_id": winner_provider_id,
             "price": auction_result["price"],
-            "service_id": winner_service.service_id,
+            "service_id": winner_service_id,
         }
         logger.info(f"Auction successful: {response}")
         return {"services": response}
