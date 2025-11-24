@@ -11,6 +11,39 @@ from utils.helpers import load_balancing
 
 import logging
 
+# Docker Build Cache Cleanup (Maintenance Notes)
+
+# To prevent the server disk from filling up with old Docker build cache layers, BuildKit garbage collection and an automatic weekly prune job were configured.
+
+# Configuration files and commands:
+
+# /etc/docker/daemon.json
+
+# {
+#   "features": { "buildkit": true },
+#   "builder": {
+#     "gc": {
+#       "enabled": true,
+#       "policy": [
+#         { "keepStorage": "15GB" }
+#       ]
+#     }
+#   }
+# }
+
+
+# Enables BuildKit and automatically removes build cache when total cache size exceeds 3 GB.
+
+# System cron job (root crontab)
+
+# @weekly /usr/bin/docker buildx prune -af --filter "until=25h" >/dev/null 2>&1
+
+
+# Runs every week to delete any unused or old BuildKit cache layers (older than 7 days).
+# Keeps the /var/lib/docker directory from growing indefinitely.
+
+
+
 # Configure logging
 logging.basicConfig(
     level=logging.INFO,  # or DEBUG for more details
